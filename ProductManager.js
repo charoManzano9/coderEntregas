@@ -1,65 +1,47 @@
-import fs from "fs"
+// src/managers/ProductManager.js
+const fs = require('fs/promises');
+const { v4: uuidv4 } = require('uuid');
 
-class ProductManager{  
+class ProductManager {
+  constructor(path) {
+    this.path = path;
+  }
 
-    constructor(pathFile){
-        this.pathFile = pathFile;
-    }
+  async getProducts() {
+    const data = await fs.readFile(this.path, 'utf-8');
+    return JSON.parse(data || '[]');
+  }
 
-    async getProducts(){
-        try {
-            const fileData = await fs.promises.readFile(this.pathFile, "utf-8");
-            const products = JSON.parse(fileData);
-            return products;
-        } catch (error) {
-            throw new Error("Error al traer el producto", error.message);
-            
-        }
-    }
+  async getProductById(id) {
+    const products = await this.getProducts();
+    return products.find(p => p.id == id);
+  }
 
-    generateNewId(products) {
-        if (products.length > 0) {
-            return products[products.length - 1].id + 1;
-        } else {
-            return 1;
-        }
-    }
-    
-    async addProduct(newProduct){
-        try {
-            //Recuperar la data
-            const fileData = await fs.promises.readFile(this.pathFile, "utf-8");
-            const products = JSON.parse(fileData);
-            
-            const newId = this.generateNewId(products);
-            //Editamos la data
-            const product = {id: newId, ...newProduct};
-            products.push(product); 
+  async addProduct(product) {
+    const products = await this.getProducts();
+    const newProduct = { id: uuidv4(), status: true, ...product };
+    products.push(newProduct);
+    await fs.writeFile(this.path, JSON.stringify(products, null, 2));
+    return newProduct;
+  }
 
-            //Guardamos el archivo
-            await fs.promises.writeFile(this.pathFile, JSON.stringify(products, null, 2),"utf8");
-        } catch (error) {
-            throw new Error("Error al añadir el producto", error.message); 
-        }
-    }
+  async updateProduct(id, fields) {
+    const products = await this.getProducts();
+    const index = products.findIndex(p => p.id == id);
+    if (index === -1) return null;
+    const updatedProduct = { ...products[index], ...fields, id: products[index].id };
+    products[index] = updatedProduct;
+    await fs.writeFile(this.path, JSON.stringify(products, null, 2));
+    return updatedProduct;
+  }
 
-    async getProductById(id) {
-        try {
-            const products = await this.getProducts();
-            const product = products.find(prod => prod.id === id);
-            
-            if (!product) {
-                console.log("Not found");
-                return null;
-            }
-    
-            return product;
-        } catch (error) {
-            console.error("Error al buscar el producto por ID:", error.message);
-            throw error; // Podés relanzarlo si querés que lo manejen desde afuera
-        }
-    }
-    
+  async deleteProduct(id) {
+    const products = await this.getProducts();
+    const filtered = products.filter(p => p.id != id);
+    if (filtered.length === products.length) return null;
+    await fs.writeFile(this.path, JSON.stringify(filtered, null, 2));
+    return true;
+  }
 }
 
-export default ProductManager;
+module.exports = ProductManager;

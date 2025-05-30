@@ -1,13 +1,24 @@
 {
-  "name": "fs",
+  "name": "primerentrega",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charoManzano9/coderEntregas.git"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "bugs": {
+    "url": "https://github.com/charoManzano9/coderEntregas/issues"
+  },
+  "homepage": "https://github.com/charoManzano9/coderEntregas#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
 }
